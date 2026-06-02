@@ -1,0 +1,11 @@
+{
+  "name": "gdu-social-listening-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GDU Social Listening — FastAPI backend",
+  "scripts": {
+    "start:dev": ".venv\\Scripts\\python.exe dev.py",
+    "start": ".venv\\Scripts\\python.exe dev.py",
+    "stop:dev": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/stop-dev.ps1"
+  }
+}
