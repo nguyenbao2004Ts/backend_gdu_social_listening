@@ -6,13 +6,20 @@ Ví dụ:
     from app.schemas.users import UserProfile
 """
 
-from app.schemas.auth import CurrentUser, LoginRequest, RegisterRequest, TokenResponse
+from app.schemas.auth import (
+    CurrentUser,
+    LoginRequest,
+    RefreshRequest,
+    RegisterRequest,
+    TokenResponse,
+)
 from app.schemas.keywords import KeywordCreate, KeywordResponse, KeywordUpdate
 from app.schemas.users import UserProfile
 
 __all__ = [
     "CurrentUser",
     "LoginRequest",
+    "RefreshRequest",
     "RegisterRequest",
     "TokenResponse",
     "UserProfile",

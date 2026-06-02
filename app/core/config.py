@@ -3,30 +3,30 @@ from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-# .env cùng thư mục gốc project (gdu_social_listerning)
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]
 _ENV_FILE = _PROJECT_ROOT / ".env"
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=str(_ENV_FILE) if _ENV_FILE.exists() else None,
+        env_file=str(_ENV_FILE),
         env_file_encoding="utf-8",
         extra="ignore",
     )
 
-    app_name: str = "GDU Social Listening API"
-    app_env: str = "development"
-    api_v1_prefix: str = "/api/v1"
+    app_name: str
+    app_env: str
+    api_v1_prefix: str
 
     database_url: str
-    db_schema: str = "dev"
+    db_schema: str
 
-    cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
+    cors_origins: str
 
-    jwt_secret: str = "change-me"
-    jwt_algorithm: str = "HS256"
-    jwt_access_token_expire_minutes: int = 60
+    jwt_secret: str
+    jwt_algorithm: str
+    jwt_access_token_expire_minutes: int
+    jwt_refresh_token_expire_hours: int
 
     @property
     def cors_origin_list(self) -> list[str]:
@@ -39,4 +39,8 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
+    if not _ENV_FILE.exists():
+        raise RuntimeError(
+            f"Thiếu file .env tại {_ENV_FILE}. Copy từ .env.example và điền giá trị."
+        )
     return Settings()

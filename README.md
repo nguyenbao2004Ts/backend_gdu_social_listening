@@ -97,12 +97,10 @@ pip install -r requirements.txt
 
 ### Bước 6 — Cấu hình `.env`
 
-Copy từ `.env.example` (nếu chưa có `.env`). Sửa password PostgreSQL:
+Copy **toàn bộ** từ `.env.example` sang `.env` (app **bắt buộc** có file `.env`, không dùng default trong code). Sửa ít nhất `DATABASE_URL` và `JWT_SECRET`:
 
-```env
-DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/gdu_social_listening
-DB_SCHEMA=dev
-JWT_SECRET=your-long-secret
+```powershell
+Copy-Item .env.example .env
 ```
 
 ### Bước 7 — Generate Prisma Client
@@ -167,11 +165,12 @@ $env:DEV_RELOAD="0"; yarn start:dev
 
 ### Swagger — đăng nhập (ổ khóa)
 
-1. `POST /api/v1/auth/login` → copy `access_token`
-2. Bấm **Authorize** (góc phải) → dán: `Bearer <token>` hoặc chỉ token (tùy UI)
+1. `POST /api/v1/auth/login` → copy `access_token` (gọi API) và `refresh_token` (đổi token, hạn 24h)
+2. Bấm **Authorize** (góc phải) → dán: `Bearer <access_token>` hoặc chỉ token (tùy UI)
 3. Gọi API có **ổ khóa** (`/users`, `/keywords`, `/auth/profile`)
+4. Khi `access_token` hết hạn: `POST /api/v1/auth/refresh` body `{ "refresh_token": "..." }` → cặp token mới
 
-API public (không khóa): `/health`, `/auth/login`. Mọi request (trừ `/docs`) được ghi vào bảng `API_LOGS`.
+API public (không khóa): `/health`, `/auth/login`, `/auth/register`, `/auth/refresh`. Mọi request (trừ `/docs`) được ghi vào bảng `API_LOGS`.
 
 ---
 
@@ -217,7 +216,8 @@ Navicat → `dev."APP_USER"` → INSERT user với `password` = chuỗi hash v�
 | Method | Path |
 |--------|------|
 | GET | `/api/v1/health` |
-| POST | `/api/v1/auth/login` |
+| POST | `/api/v1/auth/login` | Trả `access_token` + `refresh_token` (24h) |
+| POST | `/api/v1/auth/refresh` | Đổi refresh → token mới (public) |
 | POST | `/api/v1/auth/register` | Tạo tài khoản (public) |
 | GET | `/api/v1/auth/profile` | Cần JWT |
 | CRUD | `/api/v1/keywords` |

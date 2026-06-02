@@ -1,9 +1,6 @@
 from pydantic import BaseModel, Field
 
 
-from pydantic import BaseModel, Field
-
-
 class LoginRequest(BaseModel):
     username: str = Field(..., min_length=1, max_length=100)
     password: str = Field(..., min_length=1)
@@ -20,13 +17,19 @@ class RegisterRequest(BaseModel):
     sex: str | None = Field(None, max_length=20)
 
 
+class RefreshRequest(BaseModel):
+    refresh_token: str = Field(..., min_length=1)
+
+
 class TokenResponse(BaseModel):
     access_token: str
+    expires_in: int
+    refresh_token: str
     token_type: str = "bearer"
+    refresh_expires_in: int
 
 
 class CurrentUser(BaseModel):
-    """User từ JWT — dùng sau khi đã đăng nhập."""
 
     id: int
     username: str

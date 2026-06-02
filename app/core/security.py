@@ -29,6 +29,12 @@ async def get_current_user(
             settings.jwt_secret,
             algorithms=[settings.jwt_algorithm],
         )
+        if payload.get("type") == "refresh":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Use access token",
+            )
+
         username: str | None = payload.get("sub")
         user_id = payload.get("user_id")
         if not username:

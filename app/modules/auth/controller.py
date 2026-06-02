@@ -8,7 +8,12 @@ from app.schemas.auth import CurrentUser
 from app.modules.auth.repository import AuthRepository
 from app.modules.auth.service import AuthService
 from app.modules.users.repository import UserRepository
-from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse
+from app.schemas.auth import (
+    LoginRequest,
+    RefreshRequest,
+    RegisterRequest,
+    TokenResponse,
+)
 from app.schemas.users import UserProfile
 from app.modules.users.service import UserService
 
@@ -33,6 +38,15 @@ async def login(
     service: AuthService = Depends(_get_service),
 ) -> TokenResponse:
     return await service.login(body)
+
+
+@router.post("/refresh", response_model=TokenResponse)
+async def refresh_tokens(
+    body: RefreshRequest,
+    service: AuthService = Depends(_get_service),
+) -> TokenResponse:
+    """Đổi refresh_token lấy access_token + refresh_token mới."""
+    return await service.refresh(body)
 
 
 @router.post("/register", response_model=UserProfile, status_code=201)

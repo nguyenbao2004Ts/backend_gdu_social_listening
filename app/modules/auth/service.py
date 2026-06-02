@@ -1,12 +1,17 @@
 from datetime import UTC, datetime, timedelta
 
 from fastapi import HTTPException, status
-from jose import jwt
+from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 from app.core.config import Settings
 from app.modules.auth.repository import AuthRepository
-from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse
+from app.schemas.auth import (
+    LoginRequest,
+    RefreshRequest,
+    RegisterRequest,
+    TokenResponse,
+)
 from app.schemas.users import UserProfile
 from app.modules.users.service import UserService
 
@@ -35,12 +40,37 @@ class AuthService:
             "sub": user.username,
             "user_id": int(user.id),
             "role": user.role,
+            "type": "access",
             "exp": expire,
         }
         return jwt.encode(
             payload,
             self._settings.jwt_secret,
             algorithm=self._settings.jwt_algorithm,
+        )
+
+    def _create_refresh_token(self, user) -> str:
+        expire = datetime.now(UTC) + timedelta(
+            hours=self._settings.jwt_refresh_token_expire_hours
+        )
+        payload = {
+            "sub": user.username,
+            "user_id": int(user.id),
+            "type": "refresh",
+            "exp": expire,
+        }
+        return jwt.encode(
+            payload,
+            self._settings.jwt_secret,
+            algorithm=self._settings.jwt_algorithm,
+        )
+
+    def _issue_tokens(self, user) -> TokenResponse:
+        return TokenResponse(
+            access_token=self._create_access_token(user),
+            expires_in=self._settings.jwt_access_token_expire_minutes * 60,
+            refresh_token=self._create_refresh_token(user),
+            refresh_expires_in=self._settings.jwt_refresh_token_expire_hours * 3600,
         )
 
     async def login(self, body: LoginRequest) -> TokenResponse:
@@ -50,8 +80,41 @@ class AuthService:
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Sai username hoặc password",
             )
-        token = self._create_access_token(user)
-        return TokenResponse(access_token=token)
+        return self._issue_tokens(user)
+
+    async def refresh(self, body: RefreshRequest) -> TokenResponse:
+        try:
+            payload = jwt.decode(
+                body.refresh_token,
+                self._settings.jwt_secret,
+                algorithms=[self._settings.jwt_algorithm],
+            )
+        except JWTError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Refresh token hết hạn hoặc không hợp lệ",
+            ) from exc
+
+        if payload.get("type") != "refresh":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Refresh token không hợp lệ",
+            )
+
+        username: str | None = payload.get("sub")
+        if not username:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Refresh token không hợp lệ",
+            )
+
+        user = await self._repo.find_by_username(username)
+        if user is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User không tồn tại",
+            )
+        return self._issue_tokens(user)
 
     async def register(self, body: RegisterRequest) -> UserProfile:
         role = body.role.strip().lower()
