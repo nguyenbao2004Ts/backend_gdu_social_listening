@@ -221,9 +221,25 @@ Navicat → `dev."APP_USER"` → INSERT user với `password` = chuỗi hash v�
 | POST | `/api/v1/auth/register` | Tạo tài khoản (public) |
 | GET | `/api/v1/auth/profile` | Cần JWT |
 | CRUD | `/api/v1/keywords` |
+| GET | `/api/v1/google-reviews` | Danh sách review trong DB (JWT) |
+| POST | `/api/v1/google-reviews/crawl` | Crawl Google → lưu DB → trả data (JWT) |
 | GET | `/api/v1/users` |
 
----
+### Google Reviews (GDU trên Maps)
+
+1. [Google Cloud Console](https://console.cloud.google.com/) → bật **Places API (New)** → tạo API key.
+2. Điền `.env`: `GOOGLE_PLACES_API_KEY`, `GOOGLE_MAPS_TEXT_QUERY` (hoặc `GOOGLE_MAPS_PLACE_ID` nếu đã biết `ChIJ...`).
+3. Cập nhật DB (thêm cột `google_review_id`):
+
+```powershell
+python -m prisma generate
+python -m prisma db push
+```
+
+4. Swagger (JWT): `POST /api/v1/google-reviews/crawl` → crawl, lưu DB, trả JSON.  
+   `GET /api/v1/google-reviews` → xem toàn bộ đã lưu.
+
+> Google Places API chỉ trả **tối đa 5 review** mỗi request (giới hạn của Google). Muốn đủ review cần Google Business Profile API hoặc dịch vụ crawl bên thứ ba.
 
 ---
 

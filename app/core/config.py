@@ -28,6 +28,11 @@ class Settings(BaseSettings):
     jwt_access_token_expire_minutes: int
     jwt_refresh_token_expire_hours: int
 
+    google_places_api_key: str
+    google_maps_place_id: str
+    google_maps_text_query: str
+    google_maps_url: str
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

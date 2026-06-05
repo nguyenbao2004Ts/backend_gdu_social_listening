@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends
 from app.core.security import get_current_user
 from app.modules.auth.controller import router as auth_router
 from app.modules.health.controller import router as health_router
+from app.modules.google_reviews.controller import router as google_reviews_router
 from app.modules.keywords.controller import router as keywords_router
 from app.modules.users.controller import router as users_router
 
@@ -24,5 +25,11 @@ api_router.include_router(
     keywords_router,
     prefix="/keywords",
     tags=["Keywords"],
+    dependencies=_protected,
+)
+api_router.include_router(
+    google_reviews_router,
+    prefix="/google-reviews",
+    tags=["Google Reviews"],
     dependencies=_protected,
 )
